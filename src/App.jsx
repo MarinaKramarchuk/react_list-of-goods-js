@@ -22,15 +22,15 @@ const SORTED_BY_ABC = 'abc';
 const SORTED_BY_LENGTH = 'length';
 const SORTED_REVERSE = 'reverse';
 
-const sortedByCondition = (array, sortField) => {
+const sortByCondition = (array, sortField) => {
   const newArray = [...array];
 
   if (sortField === SORTED_BY_ABC) {
-    return newArray.sort((word1, word2) => word1.localeCompare(word2));
+    return newArray.sort((a, b) => a.localeCompare(b));
   }
 
   if (sortField === SORTED_BY_LENGTH) {
-    return newArray.sort((word1, word2) => word1.length - word2.length);
+    return newArray.sort((a, b) => a.length - b.length);
   }
 
   return newArray;
@@ -40,14 +40,22 @@ export const App = () => {
   const [action, setAction] = useState('');
   const [direction, setDirection] = useState('');
 
-  const goods = sortedByCondition(goodsFromServer, action);
+  const sortedGoods = sortByCondition(goodsFromServer, action);
 
-  if (direction === SORTED_REVERSE) {
-    goods.reverse();
-  }
+  const displayedGoods =
+    direction === SORTED_REVERSE ? [...sortedGoods].reverse() : sortedGoods;
+
+  const isResetVisible =
+    displayedGoods.length !== goodsFromServer.length ||
+    displayedGoods.some((v, i) => v !== goodsFromServer[i]);
 
   const changeDirection = () => {
-    setDirection(direction === '' ? SORTED_REVERSE : '');
+    setDirection(prev => (prev === '' ? SORTED_REVERSE : ''));
+  };
+
+  const handleReset = () => {
+    setAction('');
+    setDirection('');
   };
 
   return (
@@ -76,21 +84,18 @@ export const App = () => {
         <button
           type="button"
           className={cn('button is-warning', { 'is-light': direction === '' })}
-          onClick={() => changeDirection()}
+          onClick={changeDirection}
         >
           Reverse
         </button>
 
-        {(action || direction) && (
+        {isResetVisible && (
           <button
             type="button"
             className={cn('button is-danger', {
-              'is-light': action || direction,
+              'is-light': !isResetVisible,
             })}
-            onClick={() => {
-              setAction('');
-              setDirection('');
-            }}
+            onClick={handleReset}
           >
             Reset
           </button>
@@ -98,7 +103,7 @@ export const App = () => {
       </div>
 
       <ul>
-        {goods.map(good => (
+        {displayedGoods.map(good => (
           <Good key={good} good={good} />
         ))}
       </ul>
